@@ -57,7 +57,7 @@ x_train = x_train_with_999[y_train_with_999 != 999, :]
 y_train = y_train_with_999[y_train_with_999 != 999]
 
 # autoscaling
-autoscaled_X_train = (x_train - x_train.mean(axis=0)) / x_train.std(axis=0, ddof=1)
+autoscaled_x_train = (x_train - x_train.mean(axis=0)) / x_train.std(axis=0, ddof=1)
 autoscaled_y_train = (y_train - y_train.mean()) / y_train.std(ddof=1)
 
 # GAVDSPLS
@@ -84,7 +84,7 @@ toolbox.register('population', tools.initRepeat, list, toolbox.individual)
 
 def evalOneMax(individual):
     individual_array = np.array(np.floor(individual), dtype=int)
-    first_number_of_process_variables = np.arange(0, autoscaled_X_train.shape[1], max_dynamics_considered + 1)
+    first_number_of_process_variables = np.arange(0, autoscaled_x_train.shape[1], max_dynamics_considered + 1)
     selected_x_variable_numbers = np.zeros(0, dtype=int)
     for area_number in range(number_of_areas):
         check_of_two_process_variables_selected = (first_number_of_process_variables - individual_array[
@@ -100,25 +100,25 @@ def evalOneMax(individual):
             individual_array[2 * area_number + 1] = first_number_of_process_variables[flag[0]] - individual_array[
                 2 * area_number]
 
-        if individual_array[2 * area_number] + individual_array[2 * area_number + 1] <= autoscaled_X_train.shape[1]:
+        if individual_array[2 * area_number] + individual_array[2 * area_number + 1] <= autoscaled_x_train.shape[1]:
             selected_x_variable_numbers = np.r_[
                 selected_x_variable_numbers, np.arange(individual_array[2 * area_number],
                                                        individual_array[2 * area_number] + individual_array[
                                                            2 * area_number + 1])]
         else:
             selected_x_variable_numbers = np.r_[
-                selected_x_variable_numbers, np.arange(individual_array[2 * area_number], autoscaled_X_train.shape[1])]
+                selected_x_variable_numbers, np.arange(individual_array[2 * area_number], autoscaled_x_train.shape[1])]
 
-    selected_autoscaled_X_train = autoscaled_X_train[:, selected_x_variable_numbers]
+    selected_autoscaled_x_train = autoscaled_x_train[:, selected_x_variable_numbers]
     if len(selected_x_variable_numbers):
         # cross-validation
-        pls_components = np.arange(1, min(np.linalg.matrix_rank(selected_autoscaled_X_train) + 1,
+        pls_components = np.arange(1, min(np.linalg.matrix_rank(selected_autoscaled_x_train) + 1,
                                           max_number_of_components + 1), 1)
         r2_cv_all = []
         for pls_component in pls_components:
             model_in_cv = PLSRegression(n_components=pls_component)
             estimated_y_train_in_cv = np.ndarray.flatten(
-                model_selection.cross_val_predict(model_in_cv, selected_autoscaled_X_train, autoscaled_y_train,
+                model_selection.cross_val_predict(model_in_cv, selected_autoscaled_x_train, autoscaled_y_train,
                                                   cv=fold_number))
             estimated_y_train_in_cv = estimated_y_train_in_cv * y_train.std(ddof=1) + y_train.mean()
             r2_cv_all.append(1 - sum((y_train - estimated_y_train_in_cv) ** 2) / sum((y_train - y_train.mean()) ** 2))
@@ -187,7 +187,7 @@ print('-- End of (successful) evolution --')
 
 best_individual = tools.selBest(pop, 1)[0]
 best_individual_array = np.array(np.floor(best_individual), dtype=int)
-first_number_of_process_variables = np.arange(0, autoscaled_X_train.shape[1], max_dynamics_considered)
+first_number_of_process_variables = np.arange(0, autoscaled_x_train.shape[1], max_dynamics_considered)
 selected_x_variable_numbers = np.zeros(0, dtype=int)
 for area_number in range(number_of_areas):
     check_of_two_process_variables_selected = (first_number_of_process_variables - best_individual_array[
@@ -203,7 +203,7 @@ for area_number in range(number_of_areas):
         best_individual_array[2 * area_number + 1] = first_number_of_process_variables[flag[0]] - best_individual_array[
             2 * area_number]
 
-    if best_individual_array[2 * area_number] + best_individual_array[2 * area_number + 1] <= autoscaled_X_train.shape[
+    if best_individual_array[2 * area_number] + best_individual_array[2 * area_number + 1] <= autoscaled_x_train.shape[
         1]:
         selected_x_variable_numbers = np.r_[
             selected_x_variable_numbers, np.arange(best_individual_array[2 * area_number],
@@ -211,6 +211,6 @@ for area_number in range(number_of_areas):
                                                        2 * area_number + 1])]
     else:
         selected_x_variable_numbers = np.r_[
-            selected_x_variable_numbers, np.arange(best_individual_array[2 * area_number], autoscaled_X_train.shape[1])]
+            selected_x_variable_numbers, np.arange(best_individual_array[2 * area_number], autoscaled_x_train.shape[1])]
 
 print('Selected variables : %s, %s' % (selected_x_variable_numbers, best_individual.fitness.values))
